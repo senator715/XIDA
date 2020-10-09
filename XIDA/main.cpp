@@ -92,6 +92,30 @@ bool run_open() {
   return true;
 }
 
+bool run_uninstall() {
+  auto* const uninstall = utils::get_arg( "-uninstall" );
+
+  if ( uninstall == nullptr )
+    return false;
+
+  P( "[!] Running un-installation script\n" );
+
+  std::string registry_file = R"(Windows Registry Editor Version 5.00
+    [-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64]
+    [-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA]
+    [-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA]
+  )";
+
+  utils::write_file( "install.reg", ( void* )registry_file.c_str( ), registry_file.size( ) );
+
+  P( "[!] Running compiled registry script\n" );
+
+  system( R"(regedit /s "%cd%\install.reg")" );
+  system( R"(del "%cd%\install.reg")" );
+
+  return true;
+}
+
 bool run_install() {
   auto* const install = utils::get_arg( "-install" );
 
@@ -118,34 +142,34 @@ bool run_install() {
       P( "[!] Compiling registry script\n" );
 
       std::string registry_file = R"(Windows Registry Editor Version 5.00
-
-[-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64]
-[-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA]
-[-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA]
-
-; IDA64
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64]
-@="Open with IDA64"
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64\command]
-@="\"!_IDA_DIR_!\\!_IDA_64_EXE_!\" \"%1\""
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64]
-"Icon"="!_IDA_DIR_!\\!_IDA_64_EXE_!,0"
-
-; IDA
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA]
-@="Open with IDA"
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA\command]
-@="\"!_IDA_DIR_!\\!_IDA_EXE_!\" \"%1\""
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA]
-"Icon"="!_IDA_DIR_!\\!_IDA_EXE_!,0"
-
-; XIDA
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA]
-@="Open with XIDA"
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA\command]
-@="\"!_IDA_DIR_!\\!_XIDA_EXE_!\" -ida \"!_IDA_DIR_!\" -open \"%1\""
-[HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA]
-"Icon"="!_IDA_DIR_!\\!_IDA_EXE_!,0")";
+        [-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64]
+        [-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA]
+        [-HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA]
+        
+        ; IDA64
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64]
+        @="Open with IDA64"
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64\command]
+        @="\"!_IDA_DIR_!\\!_IDA_64_EXE_!\" \"%1\""
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA64]
+        "Icon"="!_IDA_DIR_!\\!_IDA_64_EXE_!,0"
+        
+        ; IDA
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA]
+        @="Open with IDA"
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA\command]
+        @="\"!_IDA_DIR_!\\!_IDA_EXE_!\" \"%1\""
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithIDA]
+        "Icon"="!_IDA_DIR_!\\!_IDA_EXE_!,0"
+        
+        ; XIDA
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA]
+        @="Open with XIDA"
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA\command]
+        @="\"!_IDA_DIR_!\\!_XIDA_EXE_!\" -ida \"!_IDA_DIR_!\" -open \"%1\""
+        [HKEY_CURRENT_USER\Software\Classes\*\shell\OpenwithXIDA]
+        "Icon"="!_IDA_DIR_!\\!_IDA_EXE_!,0"
+      )";
 
       // !_IDA_DIR_! = IDA DIRECTORY
       // !_IDA_64_EXE_! = IDA64.EXE
@@ -192,6 +216,12 @@ bool run_arguments() {
     PC( "Installs the context menu options for the specific IDA Directory\n", 14 );
   }
 
+  // -uninstall
+  {
+      P("[!] \t-uninstall\t1\t\t");
+      PC("Uninstalls the context menu options\n", 14);
+  }
+
   system( "pause" );
 
   return true;
@@ -212,6 +242,9 @@ i32 main( const i32 argc, i8* argv[ ] ) {
 
   P( "[!] XIDA - %s\n", utils::replace( __DATE__, "  ", " " ).c_str( ) );
   {
+    if ( run_uninstall( ) )
+      return 0;
+
     if ( run_install( ) )
       return 0;
 

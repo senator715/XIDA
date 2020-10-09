@@ -1,1 +1,7 @@
 x64
+*.db
+.vs/XIDA/v16/.suo
+*.db-shm
+*.opendb
+*.db-wal
+*.ipch
