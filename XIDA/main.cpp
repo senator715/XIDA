@@ -218,8 +218,8 @@ bool run_arguments() {
 
   // -uninstall
   {
-      P("[!] \t-uninstall\t1\t\t");
-      PC("Uninstalls the context menu options\n", 14);
+    P( "[!] \t-uninstall\t1\t\t" );
+    PC( "Uninstalls the context menu options\n", 14 );
   }
 
   system( "pause" );
@@ -233,6 +233,8 @@ i32 main( const i32 argc, i8* argv[ ] ) {
 
   system( "cls" );
 
+  P( "[!] XIDA - %s\n", utils::replace(__DATE__, "  ", " ").c_str() );
+
   // get ida directory
   {
     auto ida = utils::get_arg( "-ida" );
@@ -240,7 +242,7 @@ i32 main( const i32 argc, i8* argv[ ] ) {
       ida_directory = ida;
   }
 
-  P( "[!] XIDA - %s\n", utils::replace( __DATE__, "  ", " " ).c_str( ) );
+  // run commands
   {
     if ( run_uninstall( ) )
       return 0;
